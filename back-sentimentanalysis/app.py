@@ -2,8 +2,6 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from pydub import AudioSegment
 import tensorflow as tf
-from scipy.io import wavfile
-import librosa
 import os
 from controller_models import process_wav_file
 
@@ -11,10 +9,7 @@ app = Flask(__name__)
 cors = CORS(app, resources={r"/upload_audio": {"origins": "*"},
                             r"/upload_text": {"origins": "*"}})
 
-#model_text = tf.keras.models.load_model('model_text.h5')
 model_audio = tf.keras.models.load_model('./models/model_audio.h5')
-
-
 
 
 @app.route('/upload_audio', methods=['POST'])
@@ -39,18 +34,14 @@ def upload_file():
     probabilidades = process_wav_file(audioP)
     if probabilidades is not None:
         print(probabilidades)
+        priority = ""
+        if probabilidades[0][0] > 95:
+            return jsonify({'message': "prioridad alta"}), 200
+        else:
+            return jsonify({'message': "prioridad baja"}), 200
+
     else:
         print("El archivo WAV es demasiado corto para el procesamiento")
-
-    return jsonify({'message': 'File uploaded and converted successfully'}), 200
-
-
-@app.route('/upload_text', methods=['POST'])
-def upload_text():
-    text = request.form['text']
-    with open('text.txt', 'w') as f:
-        f.write(text)
-    return jsonify({'message': 'Text uploaded successfully'}), 200
 
 
 if __name__ == "__main__":

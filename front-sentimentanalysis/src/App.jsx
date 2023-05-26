@@ -14,6 +14,8 @@ const App = () => {
     const [isRecording, setIsRecording] = useState(false);
     const [text, setText] = useState("");
     const [textDisabled, setTextDisabled] = useState(true);
+    const [labelText, setLabelText] = useState("");
+    const [labelAudio, setLabelAudio] = useState("");
 
     useEffect(() => {
         if (text !== "") {
@@ -38,26 +40,39 @@ const App = () => {
         const formData = new FormData();
         formData.append("file", audioBlob);
 
-        fetch("http://localhost:5000/upload_audio", {
+        fetch("http://20.241.148.248:5000/upload_audio", {
             method: "POST",
             body: formData,
         })
             .then((response) => response.json())
-            .then((data) => console.log(data.message))
+            .then((data) => {
+                console.log(data)
+                setLabelAudio(data.message);
+            })
             .catch((error) => console.error(error));
     };
 
     const handleSendText = () => {
         const formData = new FormData();
         formData.append("text", text);
-        
-        fetch("http://localhost:5000/upload_text", {
+
+        fetch("http://20.88.186.103:5001/predict", {
             method: "POST",
-            body: formData,
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                text: text,
+            }),
         })
             .then((response) => response.json())
-            .then((data) => console.log(data.message))
-            .catch((error) => console.error(error));
+            .then((data) => {
+                console.log(data);
+                setLabelText(data.sentiment);
+            })
+            .catch((error) => {
+                console.error("Error:", error);
+            });
     };
 
     return (
@@ -73,8 +88,15 @@ const App = () => {
                     isRecording={isRecording}
                     setIsRecording={setIsRecording}
                 />
-
-                <Button variant="contained" disabled={audioDisabled} onClick={(e) => handleSendAudio(e)}>
+                {labelAudio !== "" && (
+                    <p className="text-center text-2xl font-bold py-3">
+                        {labelAudio}
+                    </p>
+                )}
+                <Button
+                    variant="contained"
+                    disabled={audioDisabled}
+                    onClick={(e) => handleSendAudio(e)}>
                     Send Audio
                 </Button>
                 <FormLabel className="mt-10" htmlFor="Text">
@@ -85,7 +107,15 @@ const App = () => {
                     onChange={(e) => setText(e.target.value)}
                     className="min-h-[5rem] mb-3 p-2 bg-gray-100 rounded-md w-full"
                 />
-                <Button variant="contained" disabled={textDisabled} onClick={(e) => handleSendText(e)}>
+                {labelText !== "" && (
+                    <p className="text-center text-2xl font-bold py-3">
+                        {labelText}
+                    </p>
+                )}
+                <Button
+                    variant="contained"
+                    disabled={textDisabled}
+                    onClick={(e) => handleSendText(e)}>
                     Send Text
                 </Button>
             </FormControl>

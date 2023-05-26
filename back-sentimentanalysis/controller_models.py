@@ -5,18 +5,17 @@ import scipy.fft
 import pickle
 import os
 import warnings
-from tensorflow.keras.models import load_model
-
+from keras.models import load_model
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 if tf.test.gpu_device_name():
     print('GPU found')
 else:
     print("No GPU found")
 
-warnings.filterwarnings("ignore", message="n_fft=2048 is too large for input signal of length=1304")
-
+#warnings.filterwarnings("ignore", message="n_fft=2048 is too large for input signal of length=1304")
 
 
 def extract_features_from_audio(audio_data, frame_len, hop_len):
@@ -93,12 +92,3 @@ def process_wav_file(file_path):
 
     else:
         return None
-
-def predict_text(text):
-    model_text = tf.keras.models.load_model('./models/model_text.h5')
-    return model_text.predict([text])[0][0]
-
-
-def predict_audio(audio):
-    model_audio = tf.keras.models.load_model('./models/model_audio.h5')
-    return model_audio.predict([audio])[0][0]
